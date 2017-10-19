@@ -18,15 +18,15 @@ class AllocationBars extends Component {
           dateLabel: '16 OCT 2017',
           jobs: [
             {
-              job: 1,
+              job: 0,
               hours: 8
             },
             {
-              job: 2,
+              job: 1,
               hours: 16
             },
             {
-              job: 3,
+              job: 2,
               hours: 1
             }
           ]
@@ -35,12 +35,16 @@ class AllocationBars extends Component {
           dateLabel: '23 OCT 2017',
           jobs: [
             {
-              job: 1,
+              job: 0,
               hours: 20
             },
             {
+              job: 1,
+              hours: 18
+            },
+            {
               job: 2,
-              hours: 20
+              hours: 2
             }
           ]
         },
@@ -48,27 +52,41 @@ class AllocationBars extends Component {
           dateLabel: '30 OCT 2017',
           jobs: [
             {
+              job: 0,
+              hours: 20
+            },
+            {
               job: 1,
-              hours: 32
+              hours: 40
             },
             {
               job: 2,
-              hours: 16
-            },
-            {
-              job: 3,
-              hours: 8
+              hours: 20
             }
           ]
         }
 
+      ],
+      jobs: [
+        {
+          id: 123,
+          label: 'Job Number One'
+        },
+        {
+          id: 456,
+          label: 'Job Number Two'
+        },
+        {
+          id: 789,
+          label: 'Job Number Three'
+        }
       ]
     })
   }
 
   formatBlockLabel = (hoursNum) => {
-    const hoursText = (hoursNum === 1) ? 'Hour' : 'Hours'
-    return `${hoursNum} ${hoursText}`
+    const hoursText = (hoursNum < 5) ? '' : ' Hours'
+    return `${hoursNum}${hoursText}`
   }
 
   getBlockWidth = (hoursNum) => {
@@ -86,18 +104,36 @@ class AllocationBars extends Component {
     return remainingHours
   }
 
+  formatHoursLabel = (hoursNum) => {
+    if (hoursNum > 0) {
+      return `${hoursNum} unallocated hours`
+    } else if (hoursNum < 0) {
+      return `${(hoursNum * -1)} overallocatied hours`
+    } else {
+      return 'Fully allocated'
+    }
+  }
+
+  getOverallocatiedPer = (remainingHours) => {
+    const per = Math.round(this.state.weekHours / ((remainingHours * -1) + this.state.weekHours) * 100)
+    return per + '%'
+  }
+
   render() {
     return (
       <div>
         <div className='allocation-bar-container'>
           {this.state.allocations.map((allocation, i1) => {
             const remainingHours = this.getRemainingHours(allocation.jobs)
-
+            const classes = (remainingHours < 0) ? 'allocation-bar overallocatied' : 'allocation-bar'
+            const barStyle = {
+              width: (remainingHours < 0) ? this.getOverallocatiedPer(remainingHours) : '100%'
+            }
             return (
-              <div key={`allocation-${i1}`} className='allocation-bar'>
+              <div key={`allocation-${i1}`} className={classes}>
                 <div className='labels'>
                   <div className='date'>{allocation.dateLabel}</div>
-                  <div className='hours'>{remainingHours} unallocated hours</div>
+                  <div className='hours'>{this.formatHoursLabel(remainingHours)}</div>
                 </div>
                 <div className='blocks'>
                   {allocation.jobs.map((block, i2) => {
@@ -116,7 +152,7 @@ class AllocationBars extends Component {
                     )
                   })}
                 </div>
-                <div className='border' />
+                <div className='border' style={barStyle} />
               </div>
             )
           })}
