@@ -1,5 +1,6 @@
-import React, { Component } from 'react';
-import './style/app.scss';
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import './style/app.scss'
 
 class AllocationBars extends Component {
   constructor(props) {
@@ -7,8 +8,20 @@ class AllocationBars extends Component {
     this.state = {
       jobs: [],
       allocations: [],
-      weekHours: 40 // TODO: not hardcoded
+      weekHours: this.props.hoursPerWeek,
+      jobColours: [
+        '#6F7793',
+        '#7189AD',
+        '#71A1A8',
+        '#71A386',
+        '#77A070',
+        '#959E71',
+        '#9B8C70'
+      ],
+      activeJob: null
     }
+
+    // this.setActiveJob = this.setActiveJob.bind(this)
   }
   componentWillMount () {
     // TODO: not hardcoded
@@ -108,7 +121,7 @@ class AllocationBars extends Component {
     if (hoursNum > 0) {
       return `${hoursNum} unallocated hours`
     } else if (hoursNum < 0) {
-      return `${(hoursNum * -1)} overallocatied hours`
+      return `Overallocatied by ${(hoursNum * -1)} hours`
     } else {
       return 'Fully allocated'
     }
@@ -119,9 +132,20 @@ class AllocationBars extends Component {
     return per + '%'
   }
 
+  getBlockTitle = (blockJob) => {
+    const job = this.state.jobs[blockJob.job]
+    const hoursText = (blockJob.hours === 1) ? 'hour' : 'hours'
+    return `${job.label} - ${blockJob.hours} ${hoursText}`
+  }
+
+  getJobColour = (index) => {
+    const colourNum = (index >= this.state.jobColours.length) ? (this.state.jobColours.length - 1) : index
+    return this.state.jobColours[colourNum]
+  }
+
   render() {
     return (
-      <div>
+      <div className='allocation-graph'>
         <div className='allocation-bar-container'>
           {this.state.allocations.map((allocation, i1) => {
             const remainingHours = this.getRemainingHours(allocation.jobs)
@@ -138,7 +162,18 @@ class AllocationBars extends Component {
                 <div className='blocks'>
                   {allocation.jobs.map((block, i2) => {
                     const blockStyle = {
-                      width: this.getBlockWidth(block.hours)
+                      width: this.getBlockWidth(block.hours),
+                      backgroundColor: this.getJobColour(block.job)
+                    }
+                    const onBlockOver = () => {
+                      this.setState({
+                        activeJob: block.job
+                      })
+                    }
+                    const onBlockOut = () => {
+                      this.setState({
+                        activeJob: null
+                      })
                     }
                     return (
                       <div
@@ -146,6 +181,11 @@ class AllocationBars extends Component {
                         className='block'
                         tabIndex='0'
                         style={blockStyle}
+                        title={this.getBlockTitle(block)}
+                        onMouseOver={onBlockOver}
+                        onMouseOut={onBlockOut}
+                        onFocus={onBlockOver}
+                        onBlur={onBlockOut}
                       >
                         {this.formatBlockLabel(block.hours)}
                       </div>
@@ -157,9 +197,31 @@ class AllocationBars extends Component {
             )
           })}
         </div>
+
+        <ul className='jobs'>
+          {this.state.jobs.map((job, i) => {
+            const jobStyle = {
+              backgroundColor: this.getJobColour(i)
+            }
+            return (
+              <li key={`job-${job.id}`}><span className='colour-block' style={jobStyle}></span> <span>{job.id}</span> <a href='job.html'>{job.label}</a></li>
+            )
+          })}
+        </ul>
+
+        selected: {this.state.activeJob}
+
       </div>
     )
   }
+}
+
+AllocationBars.defaultProps = {
+  hoursPerWeek: 40
+}
+
+AllocationBars.propTypes = {
+  hoursPerWeek: PropTypes.number
 }
 
 export default AllocationBars;

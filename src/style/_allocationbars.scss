@@ -1,67 +1,84 @@
+.allocation-graph {
+  .allocation-bar-container {
+    $colour-border: #666;
+    $colour-block-text: #FFF;
+    $colour-block-default: #CCC;
+    $colour-block-highlight: #9bcef5;
+    $colour-overallocatied: #DB0000;
 
-.allocation-bar-container {
-  $colour-border: #666;
-  $colour-block-text: #FFF;
-  $colour-block-default: #CCC;
-  $colour-block-highlight: #9bcef5;
-  $colour-overallocatied: #DB0000;
+    $height: 54px;
+    $spacing: 2px;
 
-  $height: 54px;
-  $spacing: 2px;
+    .allocation-bar {
+      margin-bottom: 15px;
+      position: relative;
 
-  .allocation-bar {
-    margin-bottom: 15px;
-    position: relative;
-
-    .labels {
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .blocks {
-      display: flex;
-      height: $height - $spacing;
-      margin-right: -2px;
-      padding: $spacing;
-
-      .block {
-        align-items: center;
-        background-color: $colour-block-default;
-        border-radius: 2px;
-        color: $colour-block-text;
+      .labels {
         display: flex;
-        justify-content: center;
-        margin: $spacing;
-        text-align: center;
-        transition: all 0.5s ease;
-        width: 25%;
+        justify-content: space-between;
+      }
 
-        &:hover,
-        &:focus {
-          background-color: $colour-block-highlight;
-          cursor: pointer;
+      .blocks {
+        display: flex;
+        height: $height - $spacing;
+        margin-right: -2px;
+        padding: $spacing;
+
+        .block {
+          align-items: center;
+          background-color: $colour-block-default;
+          border-radius: 2px;
+          color: $colour-block-text;
+          display: flex;
+          justify-content: center;
+          margin: $spacing;
+          text-align: center;
+          transition: all 0.5s ease;
+          width: 25%;
+
+          &:hover,
+          &:focus {
+            background-color: $colour-block-highlight !important;
+            cursor: pointer;
+          }
+        }
+      }
+
+      .border {
+        border: 1px solid $colour-border;
+        border-radius: 2px;
+        bottom: 0;
+        height: $height;
+        left: 0;
+        pointer-events: none;
+        position: absolute;
+        width: 100%;
+      }
+
+      &.overallocatied {
+        .hours {
+          color: $colour-overallocatied;
+        }
+        .border {
+          border-color: $colour-overallocatied;
         }
       }
     }
+  }
 
-    .border {
-      border: 1px solid $colour-border;
+  .jobs {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
+    .colour-block {
+      $size: 25px;
+
+      background-color: #EEE;
       border-radius: 2px;
-      bottom: 0;
-      height: $height;
-      left: 0;
-      pointer-events: none;
-      position: absolute;
-      width: 100%;
-    }
-
-    &.overallocatied {
-      .hours {
-        color: $colour-overallocatied;
-      }
-      .border {
-        border-color: $colour-overallocatied;
-      }
+      display: inline-block;
+      height: $size;
+      width: $size;
     }
   }
 }
