@@ -98,7 +98,7 @@ class AllocationBars extends Component {
   }
 
   formatBlockLabel = (hoursNum) => {
-    const hoursText = (hoursNum < 5) ? '' : ' Hours'
+    const hoursText = (hoursNum < 5) ? 'h' : ' Hours'
     return `${hoursNum}${hoursText}`
   }
 
@@ -139,8 +139,11 @@ class AllocationBars extends Component {
   }
 
   getJobColour = (index) => {
-    const colourNum = (index >= this.state.jobColours.length) ? (this.state.jobColours.length - 1) : index
-    return this.state.jobColours[colourNum]
+    if (index >= this.state.jobColours.length) {
+      return this.getJobColour((index - this.state.jobColours.length))
+    } else {
+      return this.state.jobColours[index]
+    }
   }
 
   render() {
@@ -165,20 +168,18 @@ class AllocationBars extends Component {
                       width: this.getBlockWidth(block.hours),
                       backgroundColor: this.getJobColour(block.job)
                     }
+                    const blockClass = (this.state.activeJob === block.job) ? 'block active' : 'block'
                     const onBlockOver = () => {
-                      this.setState({
-                        activeJob: block.job
-                      })
+                      this.setState({ activeJob: block.job })
                     }
                     const onBlockOut = () => {
-                      this.setState({
-                        activeJob: null
-                      })
+                      this.setState({ activeJob: null })
                     }
                     return (
-                      <div
+                      <a
                         key={`allocation-${i1}-block-${i2}`}
-                        className='block'
+                        href="job.html"
+                        className={blockClass}
                         tabIndex='0'
                         style={blockStyle}
                         title={this.getBlockTitle(block)}
@@ -188,7 +189,7 @@ class AllocationBars extends Component {
                         onBlur={onBlockOut}
                       >
                         {this.formatBlockLabel(block.hours)}
-                      </div>
+                      </a>
                     )
                   })}
                 </div>
@@ -203,14 +204,29 @@ class AllocationBars extends Component {
             const jobStyle = {
               backgroundColor: this.getJobColour(i)
             }
+            const jobClass = (this.state.activeJob === i) ? 'job active' : 'job'
+            const onBlockOver = () => {
+              this.setState({ activeJob: i })
+            }
+            const onBlockOut = () => {
+              this.setState({ activeJob: null })
+            }
             return (
-              <li key={`job-${job.id}`}><span className='colour-block' style={jobStyle}></span> <span>{job.id}</span> <a href='job.html'>{job.label}</a></li>
+              <li
+                key={`job-${job.id}`}
+                className={jobClass}
+                onMouseOver={onBlockOver}
+                onMouseOut={onBlockOut}
+              >
+                <a href='job.html'>
+                  <span className='colour-block' style={jobStyle} />
+                  <span>{job.id}</span>
+                  <span>{job.label}</span>
+                </a>
+              </li>
             )
           })}
         </ul>
-
-        selected: {this.state.activeJob}
-
       </div>
     )
   }

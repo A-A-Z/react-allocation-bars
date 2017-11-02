@@ -1,11 +1,11 @@
 .allocation-graph {
-  .allocation-bar-container {
-    $colour-border: #666;
-    $colour-block-text: #FFF;
-    $colour-block-default: #CCC;
-    $colour-block-highlight: #9bcef5;
-    $colour-overallocatied: #DB0000;
+  $colour-border: #666;
+  $colour-block-text: #FFF;
+  $colour-block-default: #CCC;
+  $colour-block-highlight: #9bcef5;
+  $colour-overallocatied: #DB0000;
 
+  .allocation-bar-container {
     $height: 54px;
     $spacing: 2px;
 
@@ -37,7 +37,8 @@
           width: 25%;
 
           &:hover,
-          &:focus {
+          &:focus,
+          &.active {
             background-color: $colour-block-highlight !important;
             cursor: pointer;
           }
@@ -70,6 +71,25 @@
     list-style-type: none;
     margin: 0;
     padding: 0;
+
+    .job {
+      margin: 4px 0;
+      transition: background-color 0.2s ease;
+
+      &.active {
+        background-color: $colour-block-highlight;
+      }
+
+      a {
+        align-items: center;
+        display: flex;
+
+        span {
+          display: block;
+          margin-right: 8px;
+        }
+      }
+    }
 
     .colour-block {
       $size: 25px;
