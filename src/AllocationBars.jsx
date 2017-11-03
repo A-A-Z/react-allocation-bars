@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import moment from 'moment'
 import './style/app.scss'
 
 class AllocationBars extends Component {
@@ -24,81 +25,62 @@ class AllocationBars extends Component {
     // this.setActiveJob = this.setActiveJob.bind(this)
   }
   componentWillMount () {
-    // TODO: not hardcoded
-    this.setState({
-      allocations: [
-        {
-          dateLabel: '16 OCT 2017',
-          jobs: [
-            {
-              job: 0,
-              hours: 8
-            },
-            {
-              job: 1,
-              hours: 16
-            },
-            {
-              job: 2,
-              hours: 1
-            }
-          ]
-        },
-        {
-          dateLabel: '23 OCT 2017',
-          jobs: [
-            {
-              job: 0,
-              hours: 20
-            },
-            {
-              job: 1,
-              hours: 18
-            },
-            {
-              job: 2,
-              hours: 2
-            }
-          ]
-        },
-        {
-          dateLabel: '30 OCT 2017',
-          jobs: [
-            {
-              job: 0,
-              hours: 20
-            },
-            {
-              job: 1,
-              hours: 40
-            },
-            {
-              job: 2,
-              hours: 20
-            }
-          ]
-        }
+    this.parseData(this.props.allocationData)
+  }
 
-      ],
-      jobs: [
-        {
-          id: 123,
-          label: 'Job Number One'
-        },
-        {
-          id: 456,
-          label: 'Job Number Two'
-        },
-        {
-          id: 789,
-          label: 'Job Number Three'
+  parseData = (jsonData) => {
+    const formatWeek = (allocations = [], weekNum = 0) => {
+      allocations.push({
+        dateLabel: this.getMonday(new Date(), (7 * weekNum)),
+        jobs: []
+      })
+      weekNum ++
+      if (weekNum < this.props.numOfWeeks) {
+        return formatWeek(allocations, weekNum)
+      } else {
+        return allocations
+      }
+    }
+    let jobs = []
+    let allocations = formatWeek()
+    const weekDateKeys = [
+      'weekOne',
+      'weekTwo',
+      'weekThree',
+      'weekFour'
+    ]
+
+    for (const [allocationIndex, allocation] of jsonData.data.entries()) {
+      jobs.push({
+        id: allocation.job.id,
+        label: allocation.job.label,
+        managerName: allocation.deliveryManager,
+        role: allocation.myRole
+      })
+
+      for (let weekNo = 0; weekNo < this.props.numOfWeeks; weekNo++) {
+        let weekHours = allocation[weekDateKeys[weekNo]]
+        if (weekHours > 0) {
+          allocations[weekNo].jobs.push({
+            job: allocationIndex,
+            hours: weekHours
+          })
         }
-      ]
+      }
+    }
+
+    this.setState({
+      allocations: allocations,
+      jobs: jobs
     })
   }
 
+  getMonday = (date, days) => {
+    return moment(date).add(days,'days').startOf('isoweek').format("D MMM YYYY")
+  }
+
   formatBlockLabel = (hoursNum) => {
-    const hoursText = (hoursNum < 5) ? 'h' : ' Hours'
+    const hoursText = (hoursNum < 4) ? 'h' : ' Hours'
     return `${hoursNum}${hoursText}`
   }
 
@@ -146,6 +128,11 @@ class AllocationBars extends Component {
     }
   }
 
+  formatJobLink = (id) => {
+    const urlFormat = this.props.jobLinkFormat
+    return urlFormat.replace(/\{id\}/g, id)
+  }
+
   render() {
     return (
       <div className='allocation-graph'>
@@ -175,10 +162,11 @@ class AllocationBars extends Component {
                     const onBlockOut = () => {
                       this.setState({ activeJob: null })
                     }
+                    const jobUrl = this.formatJobLink(this.state.jobs[block.job].id)
                     return (
                       <a
                         key={`allocation-${i1}-block-${i2}`}
-                        href="job.html"
+                        href={jobUrl}
                         className={blockClass}
                         tabIndex='0'
                         style={blockStyle}
@@ -211,6 +199,7 @@ class AllocationBars extends Component {
             const onBlockOut = () => {
               this.setState({ activeJob: null })
             }
+            const jobUrl = this.formatJobLink(job.id)
             return (
               <li
                 key={`job-${job.id}`}
@@ -218,7 +207,7 @@ class AllocationBars extends Component {
                 onMouseOver={onBlockOver}
                 onMouseOut={onBlockOut}
               >
-                <a href='job.html'>
+                <a href={jobUrl}>
                   <span className='colour-block' style={jobStyle} />
                   <span>{job.id}</span>
                   <span>{job.label}</span>
@@ -233,11 +222,15 @@ class AllocationBars extends Component {
 }
 
 AllocationBars.defaultProps = {
-  hoursPerWeek: 40
+  hoursPerWeek: 40,
+  numOfWeeks: 4
 }
 
 AllocationBars.propTypes = {
-  hoursPerWeek: PropTypes.number
+  allocationData: PropTypes.object.isRequired,
+  hoursPerWeek: PropTypes.number,
+  jobLinkFormat: PropTypes.string.isRequired,
+  numOfWeeks: PropTypes.number
 }
 
 export default AllocationBars;
