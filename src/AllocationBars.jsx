@@ -176,7 +176,12 @@ class AllocationBars extends Component {
                         onFocus={onBlockOver}
                         onBlur={onBlockOut}
                       >
-                        {this.formatBlockLabel(block.hours)}
+                        <div>
+                          <div className='block-hours'>{this.formatBlockLabel(block.hours)}</div>
+                          {(block.hours > 4) ? (
+                            <div className='block-job'>BEAU Customer Care - 6 months  1 Oct to 31 March 18</div>
+                          ) : ( <span /> )}
+                        </div>
                       </a>
                     )
                   })}

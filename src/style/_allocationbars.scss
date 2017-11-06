@@ -1,9 +1,11 @@
 .allocation-graph {
-  $colour-border: #666;
+  $colour-border: $light-gray;
   $colour-block-text: #FFF;
-  $colour-block-default: #CCC;
-  $colour-block-highlight: #9bcef5;
-  $colour-overallocatied: #DB0000;
+  $colour-block-default: $placeholder-gray;
+  $colour-block-highlight: $color-light-blue;
+  $colour-job-highlight: rgba($color-light-blue, 0.3);
+  $colour-overallocatied: $color-red;
+  $colour-odd-row: #f9f9f9;
 
   .allocation-bar-container {
     $height: 54px;
@@ -33,6 +35,7 @@
           justify-content: center;
           margin: $spacing;
           text-align: center;
+          text-decoration: none;
           transition: all 0.5s ease;
           width: 25%;
 
@@ -41,6 +44,19 @@
           &.active {
             background-color: $colour-block-highlight !important;
             cursor: pointer;
+          }
+
+          &> div {
+            overflow: hidden;
+          }
+
+          .block-job {
+            font-size: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.7;
+            padding: 0 4px;
           }
         }
       }
@@ -76,13 +92,19 @@
       margin: 4px 0;
       transition: background-color 0.2s ease;
 
+      &:nth-of-type(odd) {
+        background-color: $colour-odd-row;
+      }
+
       &.active {
-        background-color: $colour-block-highlight;
+        background-color: $colour-job-highlight;
       }
 
       a {
         align-items: center;
         display: flex;
+        padding: 2px;
+        text-decoration: none;
 
         span {
           display: block;
