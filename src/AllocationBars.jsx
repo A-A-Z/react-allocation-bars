@@ -7,23 +7,12 @@ class AllocationBars extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      jobs: [],
+      activeJob: null,
       allocations: [],
-      weekHours: this.props.hoursPerWeek,
-      jobColours: [
-        '#6F7793',
-        '#7189AD',
-        '#71A1A8',
-        '#71A386',
-        '#77A070',
-        '#959E71',
-        '#9B8C70'
-      ],
-      activeJob: null
+      jobs: []
     }
-
-    // this.setActiveJob = this.setActiveJob.bind(this)
   }
+
   componentWillMount () {
     this.parseData(this.props.allocationData)
   }
@@ -85,12 +74,12 @@ class AllocationBars extends Component {
   }
 
   getBlockWidth = (hoursNum) => {
-    const per = Math.round((hoursNum / this.state.weekHours) * 100)
+    const per = Math.round((hoursNum / this.props.hoursPerWeek) * 100)
     return per + '%'
   }
 
   getRemainingHours = (jobs) => {
-    let remainingHours = this.state.weekHours
+    let remainingHours = this.props.hoursPerWeek
 
     for (let job of jobs) {
       remainingHours -= job.hours
@@ -100,8 +89,11 @@ class AllocationBars extends Component {
   }
 
   formatHoursLabel = (hoursNum) => {
-    if (hoursNum > 0) {
-      return `${hoursNum} unallocated hours`
+    if (hoursNum > 0 && hoursNum < this.props.hoursPerWeek) {
+      let allocatedHours = this.props.hoursPerWeek - hoursNum
+      return `${allocatedHours} allocated hours / ${hoursNum} unallocated hours`
+    } else if (hoursNum === this.props.hoursPerWeek) {
+      return 'No allocations'
     } else if (hoursNum < 0) {
       return `Overallocatied by ${(hoursNum * -1)} hours`
     } else {
@@ -110,7 +102,7 @@ class AllocationBars extends Component {
   }
 
   getOverallocatiedPer = (remainingHours) => {
-    const per = Math.round(this.state.weekHours / ((remainingHours * -1) + this.state.weekHours) * 100)
+    const per = Math.round(this.props.hoursPerWeek / ((remainingHours * -1) + this.props.hoursPerWeek) * 100)
     return per + '%'
   }
 
@@ -121,11 +113,25 @@ class AllocationBars extends Component {
   }
 
   getJobColour = (index) => {
-    if (index >= this.state.jobColours.length) {
-      return this.getJobColour((index - this.state.jobColours.length))
-    } else {
-      return this.state.jobColours[index]
+    const jobId = this.state.jobs[index].id
+
+    // first check if is leave
+    if (this.isLeave(jobId)) {
+      return this.props.leaveColour
     }
+
+    // otherwise give job colour
+    if (index >= this.props.jobColours.length) {
+      // too many jobs, overflow colours
+      return this.getJobColour((index - this.props.jobColours.length))
+    } else {
+      // return job colour
+      return this.props.jobColours[index]
+    }
+  }
+
+  isLeave = (jobId) => {
+    return (this.props.leaveIds.indexOf(jobId) !== -1)
   }
 
   formatJobLink = (id) => {
@@ -151,18 +157,20 @@ class AllocationBars extends Component {
                 </div>
                 <div className='blocks'>
                   {allocation.jobs.map((block, i2) => {
+                    const jobId = this.state.jobs[block.job].id
                     const blockStyle = {
                       width: this.getBlockWidth(block.hours),
                       backgroundColor: this.getJobColour(block.job)
                     }
-                    const blockClass = (this.state.activeJob === block.job) ? 'block active' : 'block'
+                    let blockClass = (this.isLeave(jobId)) ? 'block leave' : 'block'
                     const onBlockOver = () => {
                       this.setState({ activeJob: block.job })
                     }
                     const onBlockOut = () => {
                       this.setState({ activeJob: null })
                     }
-                    const jobUrl = this.formatJobLink(this.state.jobs[block.job].id)
+                    const jobUrl = (this.isLeave(jobId)) ? '#' :  this.formatJobLink(jobId)
+                    if (this.state.activeJob === block.job) { blockClass += ' active' }
                     return (
                       <a
                         key={`allocation-${i1}-block-${i2}`}
@@ -179,7 +187,7 @@ class AllocationBars extends Component {
                         <div>
                           <div className='block-hours'>{this.formatBlockLabel(block.hours)}</div>
                           {(block.hours > 4) ? (
-                            <div className='block-job'>BEAU Customer Care - 6 months  1 Oct to 31 March 18</div>
+                            <div className='block-job'>{this.state.jobs[block.job].label}</div>
                           ) : ( <span /> )}
                         </div>
                       </a>
@@ -212,11 +220,18 @@ class AllocationBars extends Component {
                 onMouseOver={onBlockOver}
                 onMouseOut={onBlockOut}
               >
-                <a href={jobUrl}>
-                  <span className='colour-block' style={jobStyle} />
-                  <span>{job.id}</span>
-                  <span>{job.label}</span>
-                </a>
+                {(this.isLeave(job.id)) ? (
+                  <div className='job-link leave'>
+                    <span className='colour-block' style={jobStyle} />
+                    <span>{job.label}</span>
+                  </div>
+                ) : (
+                  <a href={jobUrl} className='job-link'>
+                    <span className='colour-block' style={jobStyle} />
+                    <span>{job.id}</span>
+                    <span>{job.label}</span>
+                  </a>
+                )}
               </li>
             )
           })}
@@ -228,13 +243,31 @@ class AllocationBars extends Component {
 
 AllocationBars.defaultProps = {
   hoursPerWeek: 40,
+  jobColours: [
+    '#6F7793',
+    '#7189AD',
+    '#71A1A8',
+    '#71A386',
+    '#77A070',
+    '#959E71',
+    '#9B8C70'
+  ],
+  leaveColour: '#e2e2e2',
+  leaveIds: [
+    1166,
+    1462,
+    13263
+  ],
   numOfWeeks: 4
 }
 
 AllocationBars.propTypes = {
   allocationData: PropTypes.object.isRequired,
   hoursPerWeek: PropTypes.number,
+  jobColours: PropTypes.array,
   jobLinkFormat: PropTypes.string.isRequired,
+  leaveColour: PropTypes.string,
+  leaveIds: PropTypes.array,
   numOfWeeks: PropTypes.number
 }
 
